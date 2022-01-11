@@ -1,0 +1,68 @@
+version: '3.8'
+
+services:
+    #service 1: definition of mysql database
+  db:
+    image: mysql:8.0.27
+    container_name: mysql-db
+    environment:
+      - MYSQL_ROOT_PASSWORD=3698741
+      - MYSQL_USER=jeickt
+      - MYSQL_PASSWORD=3698741 
+    ports:
+      - "3306:3306"
+    volumes:
+      - desafio3=/var/lib/mysql
+    restart: always
+      
+    
+    #service 2: definition of phpMyAdmin
+  phpmyadmin:
+    image: phpmyadmin:5.1.1-apache
+    container_name: my-php-myadmin
+    ports:
+      - "8082:80"
+    restart: always
+        
+    depends_on:
+      - db
+    environment:
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: 3698741
+    
+    
+    #service 3: definition of rabbitmq
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: rabbitmq
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    restart: always
+    volumes:
+      - desafio3=/var/lib/rabbitmq
+       
+    environment:
+      RABBITMQ_DEFAULT_USER: root
+      RABBITMQ_DEFAULT_PASS: 3698741
+    
+    #service 4: definition of your spring-boot app 
+  customerservice:                        #it is just a name, which will be used only in this file.
+    image: desafio3                       #name of the image after dockerfile executes
+    container_name: desafio3              #name of the container created from docker image
+    build:
+      context: .                          #docker file path (. means root directory)
+    ports:
+      - "8080:8080"                       #docker containter port with your os port
+    restart: always
+        
+    depends_on:                           #define dependencies of this app
+      - db                                #dependency name (which is defined with this name 'db' in this file earlier)
+      - rabbitmq
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql-db:3306/desafio3?createDatabaseIfNotExist=true
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: 3698741
+
+volumes:
+  desafio3:
